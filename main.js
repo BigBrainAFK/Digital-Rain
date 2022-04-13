@@ -58,7 +58,7 @@ function init() {
 
 function recalcSize() {
 	canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+	canvas.height = document.body.clientHeight;
 
 	ctx.fillStyle = '#000000';
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -66,7 +66,7 @@ function recalcSize() {
 	ctx.font = `${fontSize}px Meiryo`;
 	const measurement = ctx.measureText(characterPool[0]);
 
-    slice = measurement.width;
+	slice = measurement.width;
 
 	spacing = (canvas.width % slice) / 2;
 	sliceCount = Math.floor((canvas.width - spacing * 2) / slice);
