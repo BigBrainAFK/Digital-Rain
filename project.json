@@ -33,6 +33,14 @@
 				"type" : "slider",
 				"value" : 16
 			},
+			"highlightcolor" : 
+			{
+				"index" : 6,
+				"order" : 106,
+				"text" : "Highlight Color",
+				"type" : "color",
+				"value" : "0.7294117647058823 0.7294117647058823 0.7294117647058823"
+			},
 			"maximumchars" : 
 			{
 				"fraction" : false,
@@ -80,7 +88,7 @@
 	"preview" : "preview.jpg",
 	"tags" : [ "Sci-Fi" ],
 	"title" : "Digital Rain",
-	"type" : "web",
+	"type" : "Web",
 	"version" : 2,
 	"visibility" : "public",
 	"workshopid" : "2793847625",
