@@ -31,7 +31,7 @@
 				"order" : 101,
 				"text" : "Font Size",
 				"type" : "slider",
-				"value" : 16
+				"value" : 32
 			},
 			"highlightcolor" : 
 			{
@@ -50,7 +50,7 @@
 				"order" : 103,
 				"text" : "Maximum Drop Length",
 				"type" : "slider",
-				"value" : 25
+				"value" : 28
 			},
 			"minimumchars" : 
 			{
@@ -61,7 +61,7 @@
 				"order" : 102,
 				"text" : "Minimum Drop Length",
 				"type" : "slider",
-				"value" : 10
+				"value" : 14
 			},
 			"schemecolor" : 
 			{
@@ -88,8 +88,8 @@
 	"preview" : "preview.jpg",
 	"tags" : [ "Sci-Fi" ],
 	"title" : "Digital Rain",
-	"type" : "Web",
-	"version" : 3,
+	"type" : "web",
+	"version" : 5,
 	"visibility" : "public",
 	"workshopid" : "2793847625",
 	"workshopurl" : "steam://url/CommunityFilePage/2793847625"
