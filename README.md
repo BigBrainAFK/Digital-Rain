@@ -1,0 +1,1 @@
+Just a fun side project I did cause I wanted a better adjustable digital rain for my second monitor

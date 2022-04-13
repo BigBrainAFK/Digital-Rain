@@ -1,0 +1,88 @@
+{
+	"contentrating" : "Everyone",
+	"description" : "Just a project of mine for a nice adjusteable digital rain",
+	"file" : "index.html",
+	"general" : 
+	{
+		"properties" : 
+		{
+			"basecolor" : 
+			{
+				"index" : 5,
+				"order" : 105,
+				"text" : "Base Color",
+				"type" : "color",
+				"value" : "0 0.4470588235294118 0"
+			},
+			"characterpool" : 
+			{
+				"index" : 0,
+				"order" : 100,
+				"text" : "Character Pool",
+				"type" : "textinput",
+				"value" : "ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ"
+			},
+			"fontsize" : 
+			{
+				"fraction" : false,
+				"index" : 1,
+				"max" : 500,
+				"min" : 5,
+				"order" : 101,
+				"text" : "Font Size",
+				"type" : "slider",
+				"value" : 16
+			},
+			"maximumchars" : 
+			{
+				"fraction" : false,
+				"index" : 3,
+				"max" : 50,
+				"min" : 5,
+				"order" : 103,
+				"text" : "Maximum Drop Length",
+				"type" : "slider",
+				"value" : 25
+			},
+			"minimumchars" : 
+			{
+				"fraction" : false,
+				"index" : 2,
+				"max" : 50,
+				"min" : 5,
+				"order" : 102,
+				"text" : "Minimum Drop Length",
+				"type" : "slider",
+				"value" : 10
+			},
+			"schemecolor" : 
+			{
+				"order" : 0,
+				"text" : "ui_browse_properties_scheme_color",
+				"type" : "color",
+				"value" : "0 0 0"
+			},
+			"speedmultiplier" : 
+			{
+				"fraction" : true,
+				"index" : 4,
+				"max" : 10,
+				"min" : 0.1,
+				"order" : 104,
+				"precision" : 2,
+				"step" : 0.1,
+				"text" : "Speed Multiplier",
+				"type" : "slider",
+				"value" : 1
+			}
+		}
+	},
+	"preview" : "preview.jpg",
+	"tags" : [ "Sci-Fi" ],
+	"title" : "Digital Rain",
+	"type" : "web",
+	"version" : 2,
+	"visibility" : "public",
+	"workshopid" : "2793847625",
+	"workshopurl" : "steam://url/CommunityFilePage/2793847625"
+}
