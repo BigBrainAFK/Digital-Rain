@@ -3,24 +3,36 @@ var interpolatedColors, colorWay, slice, spacing, sliceCount, interval, vertical
 
 window.wallpaperPropertyListener = {
     applyUserProperties: function(properties) {
-		characterPool = properties.characterpool?.value ?? "ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ";
-		characterPool = [...characterPool];
-		fontSize = properties.fontsize ? Number(properties.fontsize.value) : 16;
-		minimumChars = properties.minimumchars ? Number(properties.minimumchars.value) : 10;
-		maximumChars = properties.maximumchars ? Number(properties.maximumchars.value) : 25;
-		speedMultiplier = properties.speedmultiplier ? Number(properties.speedmultiplier.value) : 1;
-		baseColor = properties.basecolor ? rgbToHex(...properties.basecolor.value.split(' ').map(x => Math.round(255 * x))) : '#007200';
-		baseColorRgb = hexToRgb(baseColor);
-		schemeColor = `rgb(${properties.schemecolor.value.split(' ').map(x => Math.round(255 * x)).join(', ')})`;
-		interpolatedColors = interpolateColors(schemeColor, `rgb(${baseColorRgb.r}, ${baseColorRgb.g}, ${baseColorRgb.b})`, 4);
-		highlightColor = properties.highlightcolor ? rgbToHex(...properties.highlightcolor.value.split(' ').map(x => Math.round(255 * x))) : '#BABABA';
+		if (properties.characterpool) {
+			characterPool = [...properties.characterpool.value];
+		}
+		if (properties.fontsize) {
+			fontSize = Number(properties.fontsize.value);
+		}
+		if (properties.minimumchars) {
+			minimumChars = Number(properties.minimumchars.value);
+		}
+		if (properties.maximumchars) {
+			maximumChars = Number(properties.maximumchars.value);
+		}
+		if (properties.speedmultiplier) {
+			speedMultiplier = Number(properties.speedmultiplier.value)
+		}
+		if (properties.basecolor) {
+			baseColor = rgbToHex(...properties.basecolor.value.split(' ').map(x => Math.round(255 * x)));
+			baseColorRgb = hexToRgb(baseColor);
+		}
+		if (properties.schemecolor) {
+			schemeColor = `rgb(${properties.schemecolor.value.split(' ').map(x => Math.round(255 * x)).join(', ')})`;
+		}
+		if (properties.highlightcolor) {
+			highlightColor = rgbToHex(...properties.highlightcolor.value.split(' ').map(x => Math.round(255 * x)));
+		}
+
+		interpolatedColors = interpolateColors(schemeColor, `rgb(${baseColorRgb.r}, ${baseColorRgb.g}, ${baseColorRgb.b})`, maximumChars - 4);
+		interpolatedColors.shift();
 		colorWay = [
-			rgbToHex(...interpolatedColors[1]),
-			rgbToHex(...interpolatedColors[2]),
-			rgbToHex(...interpolatedColors[3]),
-			baseColor,
-			baseColor,
-			baseColor,
+			...interpolatedColors.map(x => rgbToHex(...x)),
 			baseColor,
 			getMiddle(baseColorRgb, hexToRgb(highlightColor)),
 			highlightColor
@@ -30,7 +42,6 @@ window.wallpaperPropertyListener = {
 };
 
 function init() {
-	if (rain) return recalcSize();
 	canvas = document.getElementById('digital_rain');
 
 	ctx = canvas.getContext('2d');
@@ -82,9 +93,9 @@ function draw_rain() {
 			const rainLength = randInRange(minimumChars, maximumChars);
 			// set y position of slice to the top
 			rainSlice.posY = -(rainLength * verticalSpacing);
-			rainSlice.speed = randInRange(1, randInRange(20, 45));
+			rainSlice.speed = randInRange(1, randInRange(10, 13));
 			rainSlice.delay = randInRange(1, rainSlice.speed);
-			rainSlice.targetDelay = randInRange(rainSlice.speed * 2, rainSlice.speed * randInRange(50, 75));
+			rainSlice.targetDelay = randInRange(rainSlice.speed, rainSlice.speed * randInRange(5, 9));
 			rainSlice.cooldown = 0;
 			rainSlice.chars = [];
 			
@@ -120,22 +131,17 @@ function draw_rain() {
 	
 		// draw text
 		for (let i = 0; i < rainSlice.chars.length; i++) {
-			switch (i) {
-				case rainSlice.lastRandomChange:
-				case rainSlice.chars.length - 1:
-					ctx.fillStyle = getColor(colorWay.length - 1 - Math.floor(rainSlice.cooldown / 2));
-					break;
-				case rainSlice.chars.length - 2:
-					ctx.fillStyle = getColor(colorWay.length - 2 - Math.floor(rainSlice.cooldown / 2));
-					break;
-				case 0:
-				case 1:
-				case 2:
-					ctx.fillStyle = getColor(i);
-					break;
-				default:
-					ctx.fillStyle = getColor(colorWay.length - 3);
-					break;
+			if (i === rainSlice.lastRandomChange || i === rainSlice.chars.length - 1) {
+				ctx.fillStyle = getColor(colorWay.length - 1 - Math.floor(rainSlice.cooldown / 2));
+			}
+			else if (i === rainSlice.chars.length - 2) {
+				ctx.fillStyle = getColor(colorWay.length - 2 - Math.floor(rainSlice.cooldown / 2));
+			}
+			else if (i === colorWay.length - 3 || i == colorWay.length - 4) {
+				ctx.fillStyle = getColor(colorWay.length - 3);
+			}
+			else {
+				ctx.fillStyle = getColor(Math.floor(scale(i, 0, rainSlice.chars.length - 1, 0, colorWay.length - 1)));
 			}
 			ctx.fillText(rainSlice.chars[i], spacing + rainSlice.posX, rainSlice.posY + i * verticalSpacing, slice);
 		}
@@ -157,6 +163,10 @@ function getMiddle(color1, color2) {
 	return rgbToHex(Math.floor((color1.r + color2.r) / 2), Math.floor((color1.g + color2.g) / 2), Math.floor((color1.b + color2.b) / 2))
 }
 
+// Thanks to https://stackoverflow.com/questions/10756313/javascript-jquery-map-a-range-of-numbers-to-another-range-of-numbers
+function scale(number, inMin, inMax, outMin, outMax) {
+    return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+}
 
 // Thanks to https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
 function componentToHex(c) {
