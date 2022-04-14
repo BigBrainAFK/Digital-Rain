@@ -1,5 +1,8 @@
 var rain, canvas, ctx, characterPool, fontSize, minimumChars, maximumChars, speedMultiplier, baseColor, baseColorRgb;
-var interpolatedColors, colorWay, slice, spacing, sliceCount, interval, verticalSpacing, schemeColor;
+var interpolatedColorsBottom, interpolatedColorsTop, colorWay, slice, spacing, sliceCount, interval, verticalSpacing;
+var schemeColor;
+
+var diffusion = 16;
 
 window.wallpaperPropertyListener = {
     applyUserProperties: function(properties) {
@@ -26,16 +29,16 @@ window.wallpaperPropertyListener = {
 			schemeColor = `rgb(${properties.schemecolor.value.split(' ').map(x => Math.round(255 * x)).join(', ')})`;
 		}
 		if (properties.highlightcolor) {
-			highlightColor = rgbToHex(...properties.highlightcolor.value.split(' ').map(x => Math.round(255 * x)));
+			highlightColor = `rgb(${properties.highlightcolor.value.split(' ').map(x => Math.round(255 * x)).join(', ')})`;
 		}
 
-		interpolatedColors = interpolateColors(schemeColor, `rgb(${baseColorRgb.r}, ${baseColorRgb.g}, ${baseColorRgb.b})`, maximumChars - 4);
-		interpolatedColors.shift();
+		interpolatedColorsBottom = interpolateColors(schemeColor, `rgb(${baseColorRgb.r}, ${baseColorRgb.g}, ${baseColorRgb.b})`, (maximumChars - 4) * 2);
+		interpolatedColorsBottom.shift();
+		interpolatedColorsBottom.pop();
+		interpolatedColorsTop = interpolateColors(highlightColor, `rgb(${baseColorRgb.r}, ${baseColorRgb.g}, ${baseColorRgb.b})`, diffusion + 1);
 		colorWay = [
-			...interpolatedColors.map(x => rgbToHex(...x)),
-			baseColor,
-			getMiddle(baseColorRgb, hexToRgb(highlightColor)),
-			highlightColor
+			...interpolatedColorsBottom.map(x => rgbToHex(...x)),
+			...interpolatedColorsTop.reverse().map(x => rgbToHex(...x))
 		];
 		init();
     }
@@ -58,14 +61,17 @@ function init() {
 			targetDelay: 0,
 			speed: 0,
 			cooldown: 0,
-			lastRandomChange: -1,
+			lastRandomChange: {
+				index: 0,
+				state: 0
+			},
 			chars: []
 		};
 	}
 
 	window.addEventListener('resize', recalcSize, false);
 
-	interval ??= setInterval(draw_rain, 50);
+	interval ??= setInterval(draw_rain, 10);
 }
 
 function recalcSize() {
@@ -93,9 +99,9 @@ function draw_rain() {
 			const rainLength = randInRange(minimumChars, maximumChars);
 			// set y position of slice to the top
 			rainSlice.posY = -(rainLength * verticalSpacing);
-			rainSlice.speed = randInRange(1, randInRange(10, 13));
+			rainSlice.speed = randInRange(1, randInRange(verticalSpacing * 0.8, verticalSpacing));
 			rainSlice.delay = randInRange(1, rainSlice.speed);
-			rainSlice.targetDelay = randInRange(rainSlice.speed, rainSlice.speed * randInRange(5, 9));
+			rainSlice.targetDelay = randInRange(rainSlice.speed * 2, rainSlice.speed * randInRange(10, 14));
 			rainSlice.cooldown = 0;
 			rainSlice.chars = [];
 			
@@ -108,18 +114,23 @@ function draw_rain() {
 		// rain movement check
 		if (rainSlice.delay <= rainSlice.targetDelay) {
 			// randomly change a character for the matrix feel
-			if (randInRange(1,1e5) == 25) {
-				rainSlice.lastRandomChange = randInRange(0, rainSlice.chars.length - 1);
-				rainSlice.chars[rainSlice.lastRandomChange] = characterPool[randInRange(0, characterPool.length - 1)];
+			if (randInRange(1, 2000) == 25) {
+				rainSlice.lastRandomChange.index = randInRange(Math.floor(rainSlice.chars.length / 3), rainSlice.chars.length - 1);
+				rainSlice.lastRandomChange.state = 0;
+				rainSlice.chars[rainSlice.lastRandomChange.index] = characterPool[randInRange(0, characterPool.length - 1)];
 			}
 
 			rainSlice.delay += rainSlice.speed * speedMultiplier;
-			if (rainSlice.cooldown < 4) rainSlice.cooldown++;
+			if (rainSlice.cooldown < diffusion * 2) rainSlice.cooldown++;
 		}
 		else {
 			// add new chars if exists
 			rainSlice.chars.shift();
 			rainSlice.chars.push(characterPool[randInRange(0, characterPool.length - 1)]);
+
+			if (rainSlice.lastRandomChange.index > 1) {
+				rainSlice.lastRandomChange.index--;
+			}
 
 			rainSlice.posY += verticalSpacing;
 			rainSlice.delay = 0;
@@ -131,21 +142,31 @@ function draw_rain() {
 	
 		// draw text
 		for (let i = 0; i < rainSlice.chars.length; i++) {
-			if (i === rainSlice.lastRandomChange || i === rainSlice.chars.length - 1) {
+			if (i === rainSlice.lastRandomChange.index && i > 1) {
+				ctx.fillStyle = getColor(colorWay.length - 1 - Math.floor(rainSlice.lastRandomChange.state / 2));
+			}
+			else if (i === rainSlice.chars.length - 1) {
 				ctx.fillStyle = getColor(colorWay.length - 1 - Math.floor(rainSlice.cooldown / 2));
 			}
 			else if (i === rainSlice.chars.length - 2) {
-				ctx.fillStyle = getColor(colorWay.length - 2 - Math.floor(rainSlice.cooldown / 2));
+				ctx.fillStyle = getColor(colorWay.length - 1 - (diffusion / 2) - Math.floor(rainSlice.cooldown / 2));
 			}
 			else if (i === colorWay.length - 3 || i == colorWay.length - 4) {
-				ctx.fillStyle = getColor(colorWay.length - 3);
+				ctx.fillStyle = baseColor;
 			}
 			else {
-				ctx.fillStyle = getColor(Math.floor(scale(i, 0, rainSlice.chars.length - 1, 0, colorWay.length - 1)));
+				ctx.fillStyle = getColor(Math.floor(scale(i, 0, rainSlice.chars.length - 1, 0, colorWay.length - 1 - diffusion)));
 			}
 			ctx.fillText(rainSlice.chars[i], spacing + rainSlice.posX, rainSlice.posY + i * verticalSpacing, slice);
 		}
-		rainSlice.lastRandomChange = -1;
+		if (rainSlice.lastRandomChange.index > 1) {
+			if (rainSlice.lastRandomChange.state < rainSlice.chars.length - rainSlice.lastRandomChange.index) {
+				rainSlice.lastRandomChange.state++;
+			}
+			else {
+				rainSlice.lastRandomChange.index = 0;
+			}
+		}
 	};
 }
 

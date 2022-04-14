@@ -31,7 +31,7 @@
 				"order" : 101,
 				"text" : "Font Size",
 				"type" : "slider",
-				"value" : 32
+				"value" : 42
 			},
 			"highlightcolor" : 
 			{
@@ -45,7 +45,7 @@
 			{
 				"fraction" : false,
 				"index" : 3,
-				"max" : 50,
+				"max" : 100,
 				"min" : 5,
 				"order" : 103,
 				"text" : "Maximum Drop Length",
@@ -57,7 +57,7 @@
 				"fraction" : false,
 				"index" : 2,
 				"max" : 50,
-				"min" : 5,
+				"min" : 10,
 				"order" : 102,
 				"text" : "Minimum Drop Length",
 				"type" : "slider",
@@ -74,11 +74,11 @@
 			{
 				"fraction" : true,
 				"index" : 4,
-				"max" : 10,
+				"max" : 20,
 				"min" : 0.1,
 				"order" : 104,
-				"precision" : 2,
-				"step" : 0.1,
+				"precision" : 3,
+				"step" : 0.01,
 				"text" : "Speed Multiplier",
 				"type" : "slider",
 				"value" : 1
@@ -89,7 +89,7 @@
 	"tags" : [ "Sci-Fi" ],
 	"title" : "Digital Rain",
 	"type" : "web",
-	"version" : 5,
+	"version" : 6,
 	"visibility" : "public",
 	"workshopid" : "2793847625",
 	"workshopurl" : "steam://url/CommunityFilePage/2793847625"
