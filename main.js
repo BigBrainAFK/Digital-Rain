@@ -1,6 +1,6 @@
 var rain, canvas, ctx, characterPool, fontSize, minimumChars, maximumChars, speedMultiplier, baseColor, baseColorRgb;
 var interpolatedColorsBottom, interpolatedColorsTop, colorWay, slice, spacing, sliceCount, interval, verticalSpacing;
-var schemeColor;
+var schemeColor, fadeFactor, randomFadeFactor;
 
 var diffusion = 16;
 
@@ -19,7 +19,13 @@ window.wallpaperPropertyListener = {
 			maximumChars = Number(properties.maximumchars.value);
 		}
 		if (properties.speedmultiplier) {
-			speedMultiplier = Number(properties.speedmultiplier.value)
+			speedMultiplier = Number(properties.speedmultiplier.value);
+		}
+		if (properties.fadespeed) {
+			fadeFactor = Number(properties.fadespeed.value);
+		}
+		if (properties.mutationfadespeed) {
+			randomFadeFactor = Number(properties.mutationfadespeed.value);
 		}
 		if (properties.basecolor) {
 			baseColor = rgbToHex(...properties.basecolor.value.split(' ').map(x => Math.round(255 * x)));
@@ -31,18 +37,40 @@ window.wallpaperPropertyListener = {
 		if (properties.highlightcolor) {
 			highlightColor = `rgb(${properties.highlightcolor.value.split(' ').map(x => Math.round(255 * x)).join(', ')})`;
 		}
-
-		interpolatedColorsBottom = interpolateColors(schemeColor, `rgb(${baseColorRgb.r}, ${baseColorRgb.g}, ${baseColorRgb.b})`, (maximumChars - 4) * 2);
-		interpolatedColorsBottom.shift();
-		interpolatedColorsBottom.pop();
-		interpolatedColorsTop = interpolateColors(highlightColor, `rgb(${baseColorRgb.r}, ${baseColorRgb.g}, ${baseColorRgb.b})`, diffusion + 1);
-		colorWay = [
-			...interpolatedColorsBottom.map(x => rgbToHex(...x)),
-			...interpolatedColorsTop.reverse().map(x => rgbToHex(...x))
-		];
-		init();
+		applyNewProperties();
     }
 };
+
+function check() {
+	if (window.wallpaperOnVideoEnded) return;
+
+	characterPool = [...'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ'];
+	fontSize = 42;
+	minimumChars = 14;
+	maximumChars = 28;
+	speedMultiplier = 1;
+	fadeFactor = 2;
+	randomFadeFactor = 2.5
+	baseColor = '#007200';
+	baseColorRgb = hexToRgb(baseColor);
+	schemeColor = `rgb(0, 0, 0)`;
+	highlightColor = `rgb(186, 186, 186)`;
+
+	applyNewProperties();
+}
+
+function applyNewProperties() {
+	interpolatedColorsBottom = interpolateColors(schemeColor, `rgb(${baseColorRgb.r}, ${baseColorRgb.g}, ${baseColorRgb.b})`, (maximumChars - 4) * 2);
+	interpolatedColorsBottom.shift();
+	interpolatedColorsBottom.pop();
+	interpolatedColorsTop = interpolateColors(highlightColor, `rgb(${baseColorRgb.r}, ${baseColorRgb.g}, ${baseColorRgb.b})`, diffusion + 1);
+	colorWay = [
+		...interpolatedColorsBottom.map(x => rgbToHex(...x)),
+		baseColor,
+		...interpolatedColorsTop.reverse().map(x => rgbToHex(...x))
+	];
+	init();
+}
 
 function init() {
 	canvas = document.getElementById('digital_rain');
@@ -115,13 +143,13 @@ function draw_rain() {
 		if (rainSlice.delay <= rainSlice.targetDelay) {
 			// randomly change a character for the matrix feel
 			if (randInRange(1, 2000) == 25) {
-				rainSlice.lastRandomChange.index = randInRange(Math.floor(rainSlice.chars.length / 3), rainSlice.chars.length - 1);
+				rainSlice.lastRandomChange.index = randInRange(Math.floor(rainSlice.chars.length / 2), rainSlice.chars.length - 4);
 				rainSlice.lastRandomChange.state = 0;
 				rainSlice.chars[rainSlice.lastRandomChange.index] = characterPool[randInRange(0, characterPool.length - 1)];
 			}
 
 			rainSlice.delay += rainSlice.speed * speedMultiplier;
-			if (rainSlice.cooldown < diffusion * 2) rainSlice.cooldown++;
+			if (getWithFactor(rainSlice.cooldown) < diffusion) rainSlice.cooldown++;
 		}
 		else {
 			// add new chars if exists
@@ -143,13 +171,13 @@ function draw_rain() {
 		// draw text
 		for (let i = 0; i < rainSlice.chars.length; i++) {
 			if (i === rainSlice.lastRandomChange.index && i > 1) {
-				ctx.fillStyle = getColor(colorWay.length - 1 - Math.floor(rainSlice.lastRandomChange.state / 2));
+				ctx.fillStyle = getColor(colorWay.length - 1 - Math.min(getRandWithFactor(rainSlice.lastRandomChange.state), rainSlice.chars.length - rainSlice.lastRandomChange.index));
 			}
 			else if (i === rainSlice.chars.length - 1) {
-				ctx.fillStyle = getColor(colorWay.length - 1 - Math.floor(rainSlice.cooldown / 2));
+				ctx.fillStyle = getColor(colorWay.length - 1 - getCooldownState(rainSlice.cooldown));
 			}
 			else if (i === rainSlice.chars.length - 2) {
-				ctx.fillStyle = getColor(colorWay.length - 1 - (diffusion / 2) - Math.floor(rainSlice.cooldown / 2));
+				ctx.fillStyle = getColor(colorWay.length - (diffusion / 2) - getCooldownState(rainSlice.cooldown));
 			}
 			else if (i === colorWay.length - 3 || i == colorWay.length - 4) {
 				ctx.fillStyle = baseColor;
@@ -160,7 +188,7 @@ function draw_rain() {
 			ctx.fillText(rainSlice.chars[i], spacing + rainSlice.posX, rainSlice.posY + i * verticalSpacing, slice);
 		}
 		if (rainSlice.lastRandomChange.index > 1) {
-			if (rainSlice.lastRandomChange.state < rainSlice.chars.length - rainSlice.lastRandomChange.index) {
+			if (getRandWithFactor(rainSlice.lastRandomChange.state) < rainSlice.chars.length - rainSlice.lastRandomChange.index) {
 				rainSlice.lastRandomChange.state++;
 			}
 			else {
@@ -168,6 +196,18 @@ function draw_rain() {
 			}
 		}
 	};
+}
+
+function getWithFactor(cooldown) {
+	return Math.floor(cooldown / fadeFactor * speedMultiplier);
+}
+
+function getRandWithFactor(rand) {
+	return Math.floor(rand / randomFadeFactor * speedMultiplier);
+}
+
+function getCooldownState(cooldown) {
+	return Math.min(getWithFactor(cooldown), Math.floor(cooldown / 2));
 }
 
 function getColor(index) {
